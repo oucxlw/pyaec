@@ -13,24 +13,19 @@
 # limitations under the License.
 # =============================================================================
 
-""" recursive least squares filter """
+""" Least Mean Squares Filter """
 
 import numpy as np
 
-def rls(x, d, N = 4, lmbd = 0.999, delta = 0.0002):
-    L = min(len(x),len(d))
-    lmbd_inv = 1/lmbd
-    h = np.zeros((N, 1))
-    P = np.eye(N)/delta
-    e = np.zeros(L-N)
-    for n in range(L-N):
-        x_n = np.array(x[n:n+N][::-1]).reshape(N, 1)
-        d_n = d[n] 
-        y_n = np.dot(x_n.T, h)
-        e_n = d_n - y_n
-        g = np.dot(P, x_n)
-        g = g / (lmbd + np.dot(x_n.T, g))
-        h = h + e_n * g
-        P = lmbd_inv*(P - np.dot(g, np.dot(x_n.T, P)))
-        e[n] = e_n
-    return e
+def lms(x, d, N = 4, mu = 0.1):
+  nIters = min(len(x),len(d)) - N
+  u = np.zeros(N)
+  w = np.zeros(N)
+  e = np.zeros(nIters)
+  for n in range(nIters):
+    u[1:] = u[:-1]
+    u[0] = x[n]
+    e_n = d[n] - np.dot(u, w)
+    w = w + mu * e_n * u
+    e[n] = e_n
+  return e
